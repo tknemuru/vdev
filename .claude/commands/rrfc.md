@@ -83,3 +83,13 @@ $ARGUMENTS
 1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-approach.md`, `review-security-risk.md`, `review-quality.md`）をステージングする。
 2. コミットメッセージ `docs: add RFC review results for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
+
+### Step 7: PR ステータス更新
+
+全レビュアーの判定が **Approve** の場合、以下を実行せよ:
+1. `gh pr ready` で Draft PR を Ready 状態にする。
+2. 「全レビュアーが Approve しました。PR を Ready にしました。人間による最終確認をお願いします。」とユーザに報告する。
+
+いずれかのレビュアーが **Request Changes** の場合:
+1. PR は Draft のまま維持する。
+2. 「Request Changes があります。指摘事項を確認し、RFCを修正後に再度 `/rrfc` を実行してください。」とユーザに報告する。

@@ -67,5 +67,6 @@ rfc-publish <slug>
 - `docs/rfcs/<slug>/rfc.md` のステージング
 - コミット（メッセージ: `docs: add RFC draft for <slug>`）
 - `feature/<slug>` ブランチをリモートにプッシュ
+- Draft PR の作成（未作成の場合）
 
-完了後、作成したRFCのファイルパスとブランチ名をユーザに報告せよ。
+完了後、作成したRFCのファイルパス・ブランチ名・PR URLをユーザに報告せよ。

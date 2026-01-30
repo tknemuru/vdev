@@ -37,4 +37,20 @@ git add "$REPO_ROOT/$RFC_PATH"
 git commit -m "docs: add RFC draft for ${SLUG}"
 git push -u origin "$EXPECTED_BRANCH"
 
+# --- Draft PR 作成 ---
+if gh pr view "$EXPECTED_BRANCH" >/dev/null 2>&1; then
+  echo "PR は既に存在します。スキップします。"
+else
+  gh pr create --draft \
+    --title "[RFC] ${SLUG}" \
+    --body "## RFC Draft
+
+- **RFC**: \`${RFC_PATH}\`
+- **Branch**: \`${EXPECTED_BRANCH}\`
+
+---
+このPRはAIレビュー完了後に Ready 状態になります。"
+  echo "Draft PR を作成しました。"
+fi
+
 echo "完了: ${RFC_PATH} を ${EXPECTED_BRANCH} にプッシュしました。"
