@@ -1,6 +1,6 @@
-# /rrfc - RFCレビューコマンド
+# /rimp - 実装レビューコマンド
 
-指定されたRFCに対し、3つのレビュー人格による並列レビューを実行せよ。
+実装コードに対し、3つのレビュー人格による並列レビューを実行せよ。
 
 ## 対象slug
 
@@ -12,9 +12,13 @@ $ARGUMENTS
 
 上記「対象slug」が空の場合は、「レビュー対象のslugを入力してください。」とだけ表示し、ユーザの次のメッセージを待て。
 
-### Step 2: RFC読み込み
+### Step 2: RFC・差分の読み込み
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に `docs/rfcs/<slug>/rfc.md` を読み込め。ファイルが存在しない場合はエラーを報告して終了せよ。
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
+- `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
+- `git diff main...HEAD` の出力（実装差分の全体）
+
+RFC ファイルが存在しない場合はエラーを報告して終了せよ。
 
 ### Step 3: レビューテンプレート読み込み
 
@@ -28,7 +32,9 @@ $ARGUMENTS
 
 各 Task のプロンプトには以下を含めること:
 - レビュー人格の定義（下記参照）
+- コード固有の検証項目（下記参照）
 - RFC本文の全文
+- 実装差分の全文
 - レビューテンプレート
 - 出力先ファイルパス
 - 「レビュー結果を指定のファイルパスに Write ツールで書き込め」という指示
@@ -36,57 +42,58 @@ $ARGUMENTS
 #### Task 1: Approach Reviewer
 
 - 人格ファイル: `~/projects/vdev/prompts/roles/approach-reviewer.md`
-- 出力先: `docs/rfcs/<slug>/review-approach.md`
+- 出力先: `docs/rfcs/<slug>/review-imp-approach.md`
 
 #### Task 2: Security & Risk Reviewer
 
 - 人格ファイル: `~/projects/vdev/prompts/roles/security-risk-reviewer.md`
-- 出力先: `docs/rfcs/<slug>/review-security-risk.md`
+- 出力先: `docs/rfcs/<slug>/review-imp-security-risk.md`
 
 #### Task 3: Technical Quality Reviewer
 
 - 人格ファイル: `~/projects/vdev/prompts/roles/technical-quality-reviewer.md`
-- 出力先: `docs/rfcs/<slug>/review-quality.md`
+- 出力先: `docs/rfcs/<slug>/review-imp-quality.md`
 
 #### 各 Task のプロンプト構成
 
 ```
-あなたは以下の人格でRFC（設計ドキュメント）をレビューする。
+あなたは以下の人格で実装コードをレビューする。
 
 ## 人格定義
 {人格ファイルの内容}
 
-## RFC固有の検証項目
+## コード固有の検証項目
 
 ### Approach Reviewer の場合:
-- 解決すべき課題の定義は正確か。前提に誤りや飛躍はないか。
-- このRFCは本当に必要か。既存の仕組みや、より単純な代替手段で解決できないか。
-- スコープは適切か。過大でも過小でもないか。
-- Goals / Non-Goals の線引きに論理的根拠があるか。
-- ビジネス要件と設計の整合性は取れているか。仕様の矛盾や異常系の考慮漏れはないか。
+- 実装はRFCの設計意図に忠実か。乖離がある場合、その理由は妥当か。
+- 不要なコードや過剰な実装はないか。RFCのスコープを超えていないか。
+- より単純な実装方法はないか。
 
 ### Security & Risk Reviewer の場合:
-- 設計レベルでセキュリティ脆弱性（OWASP Top 10等）は考慮されているか。
-- 障害発生時の影響範囲と復旧手段は明確か。
-- 移行リスク（データ移行、API互換性等）は評価されているか。
-- 後方互換性への影響は検討されているか。
-- 導入に伴うリスクとその緩和策は示されているか。
+- セキュリティ脆弱性（インジェクション、XSS、認証不備等）はないか。
+- 機密情報（シークレット、個人情報）の取り扱いは適切か。
+- エラーハンドリングは適切か。障害時に安全に失敗するか。
+- 依存ライブラリに既知の脆弱性はないか。
 
 ### Technical Quality Reviewer の場合:
-- 過剰な複雑さ（Over-engineering）はないか。シンプルかつ拡張性の高い設計か。
-- テスト容易性は確保されているか。検証計画は妥当か。
-- 可観測性（ログ、メトリクス、トレース）は設計に組み込まれているか。
-- 既存コードベースとの整合性・一貫性は保たれているか。
-- パフォーマンスへの影響は考慮されているか。
+- コードは読みやすく保守しやすいか。命名・構造は適切か。
+- テストは十分か。正常系・異常系・境界値がカバーされているか。
+- ログ・メトリクス等の可観測性は実装されているか。
+- パフォーマンス上の問題はないか（N+1クエリ、不要なループ等）。
+- 既存コードベースのスタイル・パターンと一貫しているか。
+
+## 設計仕様（RFC）
+{RFC本文の全文}
+
+## レビュー対象コード（差分）
+{git diff main...HEAD の全出力}
 
 ## レビューテンプレート
 {レビューテンプレートの内容}
 
-## レビュー対象RFC
-{RFC本文の全文}
-
 ## 指示
-- 上記の人格定義と RFC 固有の検証項目に従い、RFCを厳格にレビューせよ。
+- 上記の人格定義とコード固有の検証項目に従い、実装コードを厳格にレビューせよ。
+- RFC との整合性を必ず確認すること。
 - レビューテンプレートの構造に従い、レビュー結果を作成せよ。
 - テンプレート内の {人格名} は、あなたの人格名に置き換えよ。
 - 判定は Approve または Request Changes のいずれかとせよ。
@@ -103,8 +110,8 @@ $ARGUMENTS
 
 ### Step 6: コミット & プッシュ
 
-1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-approach.md`, `review-security-risk.md`, `review-quality.md`）をステージングする。
-2. コミットメッセージ `docs: add RFC review results for <slug>` でコミットする。
+1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-imp-approach.md`, `review-imp-security-risk.md`, `review-imp-quality.md`）をステージングする。
+2. コミットメッセージ `docs: add implementation review results for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
 
 ### Step 7: PR ステータス更新
@@ -115,4 +122,4 @@ $ARGUMENTS
 
 いずれかのレビュアーが **Request Changes** の場合:
 1. PR は Draft のまま維持する。
-2. 「Request Changes があります。指摘事項を確認し、RFCを修正後に再度 `/rrfc` を実行してください。」とユーザに報告する。
+2. 「Request Changes があります。指摘事項を確認し、コードを修正後に再度 `/rimp` を実行してください。」とユーザに報告する。
