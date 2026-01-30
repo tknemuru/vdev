@@ -22,13 +22,17 @@ git pull --ff-only origin main 2>/dev/null || true
 git checkout -b feature/<slug> 2>/dev/null || git checkout feature/<slug>
 ```
 
-### Step 3: RFC読み込み
+### Step 3: RFC読み込み・ステータス確認
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に `docs/rfcs/<slug>/rfc.md` を読み込め。ファイルが存在しない場合はエラーを報告して終了せよ。
-
-### Step 4: RFC ステータス確認
-
 RFC のステータスが「Accepted (承認済)」であることを確認せよ。承認済みでない場合は、ユーザに警告を表示し、続行するか確認せよ。
+
+### Step 4: システム概要ドキュメント読み込み
+
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下のシステム概要ドキュメントが存在する場合は読み込め（存在しないファイルはスキップ）:
+- `docs/architecture.md`
+- `docs/domain-model.md`
+- `docs/api-overview.md`
 
 ### Step 5: 実装計画の策定
 

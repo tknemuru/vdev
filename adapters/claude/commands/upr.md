@@ -26,10 +26,13 @@ gh pr view feature/<slug> --comments --json comments,reviews
 
 コメントが存在しない場合は「対応すべき PR コメントはありません。」と報告して終了せよ。
 
-### Step 4: RFC・コードの読み込み
+### Step 4: RFC・コード・システム概要ドキュメントの読み込み
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文）
+- `docs/architecture.md`（存在する場合のみ）
+- `docs/domain-model.md`（存在する場合のみ）
+- `docs/api-overview.md`（存在する場合のみ）
 - 実装差分（以下のコマンドで取得。レビュー関連ファイルを除外する）
 
 ```bash
