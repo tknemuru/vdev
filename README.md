@@ -27,17 +27,17 @@ vdev/
 
 | Stage | コマンド | 概要 |
 | :--- | :--- | :--- |
-| 1. Drafting | `/rfc` | RFC を起草し、feature ブランチに push、Draft PR を作成 |
-| 2. Reviewing | `/rrfc`, `/urfc` | 3 人格による並列レビュー、指摘に基づく修正 |
-| 3. Implementing | `/imp`, `/rimp`, `/uimp` | RFC に基づく実装、コードレビュー、修正 |
-| 4. Closing | `/upr` | 人間の PR コメント対応、最終確認、PR マージ |
+| 1. Drafting | `/rfc` | RFC を起草し、`rfc/<slug>` ブランチに push、Draft PR を作成 |
+| 2. Reviewing | `/rrfc`, `/urfc` | 3 人格による並列レビュー、指摘に基づく修正、Accepted 後に人間がマージ |
+| 3. Implementing | `/imp`, `/rimp`, `/uimp` | `feature/<slug>` ブランチで実装、コードレビュー、修正 |
+| 4. Closing | `/upr` | 人間の PR コメント対応、最終確認、実装 PR マージ |
 
 ## CLI ツール
 
 | コマンド | 概要 |
 | :--- | :--- |
 | `csync` | `adapters/claude/` 配下の設定を対象リポジトリの `.claude/` および `CLAUDE.md` に同期 |
-| `rfc-init <slugstr>` | JST 日付付き slug 生成、feature ブランチ作成、RFC ディレクトリ・テンプレート配置 |
+| `rfc-init <slugstr>` | JST 日付付き slug 生成、`rfc/<slug>` ブランチ作成、RFC ディレクトリ・テンプレート配置 |
 | `rfc-publish <slug>` | RFC のコミット・push・Draft PR 作成 |
 
 ## セットアップ

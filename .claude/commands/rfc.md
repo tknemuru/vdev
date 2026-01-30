@@ -26,7 +26,7 @@ rfc-init <slugstr>
 
 このスクリプトは以下を自動実行する:
 - JST日付を付与した slug の生成
-- `main` から `feature/<slug>` ブランチを作成・チェックアウト
+- `main` から `rfc/<slug>` ブランチを作成・チェックアウト
 - `docs/rfcs/<slug>/` ディレクトリを作成
 - テンプレートを `docs/rfcs/<slug>/rfc.md` にコピー
 
@@ -66,7 +66,7 @@ rfc-publish <slug>
 このスクリプトは以下を自動実行する:
 - `docs/rfcs/<slug>/rfc.md` のステージング
 - コミット（メッセージ: `docs: add RFC draft for <slug>`）
-- `feature/<slug>` ブランチをリモートにプッシュ
+- `rfc/<slug>` ブランチをリモートにプッシュ
 - Draft PR の作成（未作成の場合）
 
 完了後、作成したRFCのファイルパス・ブランチ名・PR URLをユーザに報告せよ。

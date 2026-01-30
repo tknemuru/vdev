@@ -17,7 +17,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 
 # --- ブランチ確認 ---
 CURRENT_BRANCH="$(git branch --show-current)"
-EXPECTED_BRANCH="feature/${SLUG}"
+EXPECTED_BRANCH="rfc/${SLUG}"
 
 if [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
   echo "エラー: 現在のブランチは ${CURRENT_BRANCH} です。${EXPECTED_BRANCH} で実行してください。" >&2

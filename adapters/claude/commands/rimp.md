@@ -16,9 +16,15 @@ $ARGUMENTS
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
-- `git diff main...HEAD` の出力（実装差分の全体）
+- 実装差分（以下のコマンドで取得。レビュー関連ファイルを除外する）
+
+```bash
+git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md'
+```
 
 RFC ファイルが存在しない場合はエラーを報告して終了せよ。
+
+**大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff main...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
 
 ### Step 3: レビューテンプレート読み込み
 
@@ -69,7 +75,7 @@ RFC ファイルが存在しない場合はエラーを報告して終了せよ�
 {RFC本文の全文}
 
 ## レビュー対象コード（差分）
-{git diff main...HEAD の全出力}
+{git diff の全出力}
 
 ## レビューテンプレート
 {レビューテンプレートの内容}

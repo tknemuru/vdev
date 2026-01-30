@@ -30,7 +30,11 @@ gh pr view feature/<slug> --comments --json comments,reviews
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文）
-- `git diff main...HEAD` の出力（実装差分。実装済みの場合）
+- 実装差分（以下のコマンドで取得。レビュー関連ファイルを除外する）
+
+```bash
+git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md'
+```
 
 ### Step 5: コメント分析
 
@@ -48,11 +52,11 @@ PR コメントを分析し、修正対象を分類せよ:
 
 ### Step 7: テスト実行
 
-コードを修正した場合は、テストを実行し全て通過することを確認せよ。
+コードを修正した場合は、プロジェクトのテストコマンドを実行し全て通過することを確認せよ。
 
 ### Step 8: コミット & プッシュ
 
 1. 変更ファイルをステージングする。
-2. コミットメッセージ `fix: address PR review feedback for <slug>` でコミットする。
+2. コミットメッセージは変更内容に応じた適切なプレフィックス（`fix:`, `refactor:`, `docs:` 等）を付けること。
 3. `feature/<slug>` ブランチをリモートにプッシュする。
 4. 修正内容の要約をユーザに報告せよ。

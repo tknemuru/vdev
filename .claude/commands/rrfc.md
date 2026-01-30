@@ -12,15 +12,19 @@ $ARGUMENTS
 
 上記「対象slug」が空の場合は、「レビュー対象のslugを入力してください。」とだけ表示し、ユーザの次のメッセージを待て。
 
-### Step 2: RFC読み込み
+### Step 2: ブランチ確認
+
+現在のブランチが `rfc/<slug>` であることを確認せよ。異なる場合は `rfc/<slug>` にチェックアウトせよ。
+
+### Step 3: RFC読み込み
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に `docs/rfcs/<slug>/rfc.md` を読み込め。ファイルが存在しない場合はエラーを報告して終了せよ。
 
-### Step 3: レビューテンプレート読み込み
+### Step 4: レビューテンプレート読み込み
 
 `~/projects/vdev/templates/review/review-default.md` を読み込め。
 
-### Step 4: 並列レビュー実行
+### Step 5: 並列レビュー実行
 
 以下の3つのレビューを **Task ツールを使って並列に** 実行せよ。各 Task は独立したサブエージェントとして起動し、親セッションのコンテキストを引き継がない。
 
@@ -76,24 +80,27 @@ $ARGUMENTS
 - レビュー結果を {出力先ファイルパス} に Write ツールで書き込め。
 ```
 
-### Step 5: 結果報告
+### Step 6: 結果報告
 
 全レビュー完了後、以下をユーザに報告せよ:
 - 各レビュアーの判定（Approve / Request Changes）
 - 出力されたレビューファイルのパス一覧
 
-### Step 6: コミット & プッシュ
+### Step 7: コミット & プッシュ
 
 1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-approach.md`, `review-security-risk.md`, `review-quality.md`）をステージングする。
 2. コミットメッセージ `docs: add RFC review results for <slug>` でコミットする。
-3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
+3. 現在のブランチ（`rfc/<slug>`）をリモートにプッシュする。
 
-### Step 7: PR ステータス更新
+### Step 8: PR ステータス更新
 
 全レビュアーの判定が **Approve** の場合、以下を実行せよ:
-1. `gh pr ready` で Draft PR を Ready 状態にする。
-2. 「全レビュアーが Approve しました。PR を Ready にしました。人間による最終確認をお願いします。」とユーザに報告する。
+1. `docs/rfcs/<slug>/rfc.md` のステータスを「Accepted (承認済)」に更新する。
+2. ステータス変更をコミットする（メッセージ: `docs: mark RFC as accepted for <slug>`）。
+3. リモートにプッシュする。
+4. `gh pr ready` で Draft PR を Ready 状態にする。
+5. 「全レビュアーが Approve しました。RFC を Accepted に更新し、PR を Ready にしました。人間による最終確認・マージをお願いします。」とユーザに報告する。
 
 いずれかのレビュアーが **Request Changes** の場合:
 1. PR は Draft のまま維持する。
-2. 「Request Changes があります。指摘事項を確認し、RFCを修正後に再度 `/rrfc` を実行してください。」とユーザに報告する。
+2. 「Request Changes があります。指摘事項を確認し、`/urfc <slug>` でRFCを修正後に再度 `/rrfc` を実行してください。」とユーザに報告する。

@@ -12,9 +12,15 @@ $ARGUMENTS
 
 上記「対象slug」が空の場合は、「実装対象のslugを入力してください。」とだけ表示し、ユーザの次のメッセージを待て。
 
-### Step 2: ブランチ確認
+### Step 2: ブランチ作成
 
-現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
+`feature/<slug>` ブランチが存在しない場合は `main` から作成せよ。既に存在する場合はチェックアウトせよ。
+
+```bash
+git checkout main
+git pull --ff-only origin main 2>/dev/null || true
+git checkout -b feature/<slug> 2>/dev/null || git checkout feature/<slug>
+```
 
 ### Step 3: RFC読み込み
 
@@ -42,11 +48,27 @@ RFC の設計意図に忠実に実装せよ。以下のルールに従うこと:
 
 ### Step 7: テスト実行
 
-テストを実行し、全て通過することを確認せよ。失敗がある場合は修正してから次のステップに進むこと。
+プロジェクトのテストコマンドを実行し、全て通過することを確認せよ。失敗がある場合は修正してから次のステップに進むこと。
 
-### Step 8: コミット & プッシュ
+### Step 8: コミット & プッシュ & PR 作成
 
 1. 変更ファイルをステージングする。
 2. コミットメッセージは変更内容に応じた適切なプレフィックス（`feat:`, `fix:`, `test:` 等）を付けること。
 3. `feature/<slug>` ブランチをリモートにプッシュする。
-4. 実装した内容の要約をユーザに報告せよ。
+4. Draft PR が未作成の場合、以下の形式で作成する:
+
+```bash
+gh pr create --draft \
+  --title "feat: <slug>" \
+  --body "## Summary
+
+RFC に基づく実装。
+
+- **RFC**: \`docs/rfcs/<slug>/rfc.md\`
+- **Branch**: \`feature/<slug>\`
+
+---
+このPRはAIレビュー完了後に Ready 状態になります。"
+```
+
+5. 実装した内容の要約をユーザに報告せよ。

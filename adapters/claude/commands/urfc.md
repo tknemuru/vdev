@@ -14,7 +14,7 @@ $ARGUMENTS
 
 ### Step 2: ブランチ確認
 
-現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
+現在のブランチが `rfc/<slug>` であることを確認せよ。異なる場合は `rfc/<slug>` にチェックアウトせよ。
 
 ### Step 3: RFC・レビュー結果の読み込み
 
@@ -49,5 +49,5 @@ $ARGUMENTS
 
 1. `docs/rfcs/<slug>/rfc.md` をステージングする。
 2. コミットメッセージ `docs: revise RFC for <slug>` でコミットする。
-3. `feature/<slug>` ブランチをリモートにプッシュする。
+3. `rfc/<slug>` ブランチをリモートにプッシュする。
 4. 「RFC を修正しました。`/rrfc <slug>` で再レビューを実行してください。」とユーザに報告せよ。

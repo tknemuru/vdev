@@ -44,10 +44,16 @@ if [ -d "$TARGET_DIR" ]; then
   TARGET_DIR="$REPO_ROOT/docs/rfcs/$SLUG"
 fi
 
+# --- 未コミット変更チェック ---
+if [ -n "$(git status --porcelain)" ]; then
+  echo "エラー: 未コミットの変更があります。先にコミットまたは stash してください。" >&2
+  exit 1
+fi
+
 # --- ブランチ作成 ---
 git checkout main
 git pull --ff-only origin main 2>/dev/null || true
-git checkout -b "feature/${SLUG}"
+git checkout -b "rfc/${SLUG}"
 
 # --- ディレクトリ作成 & テンプレートコピー ---
 mkdir -p "$TARGET_DIR"
