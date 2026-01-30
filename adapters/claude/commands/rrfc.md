@@ -33,15 +33,15 @@ $ARGUMENTS
 - 出力先ファイルパス
 - 「レビュー結果を指定のファイルパスに Write ツールで書き込め」という指示
 
-#### Task 1: Domain Expert Reviewer
+#### Task 1: Approach Reviewer
 
-- 人格ファイル: `~/projects/vdev/prompts/roles/domain-expert-reviewer.md`
-- 出力先: `docs/rfcs/<slug>/review-domain.md`
+- 人格ファイル: `~/projects/vdev/prompts/roles/approach-reviewer.md`
+- 出力先: `docs/rfcs/<slug>/review-approach.md`
 
-#### Task 2: Security & SRE Reviewer
+#### Task 2: Security & Risk Reviewer
 
-- 人格ファイル: `~/projects/vdev/prompts/roles/security-sre-reviewer.md`
-- 出力先: `docs/rfcs/<slug>/review-security-sre.md`
+- 人格ファイル: `~/projects/vdev/prompts/roles/security-risk-reviewer.md`
+- 出力先: `docs/rfcs/<slug>/review-security-risk.md`
 
 #### Task 3: Technical Quality Reviewer
 
@@ -80,6 +80,6 @@ $ARGUMENTS
 
 ### Step 6: コミット & プッシュ
 
-1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-domain.md`, `review-security-sre.md`, `review-quality.md`）をステージングする。
+1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-approach.md`, `review-security-risk.md`, `review-quality.md`）をステージングする。
 2. コミットメッセージ `docs: add RFC review results for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
