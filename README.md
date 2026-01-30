@@ -30,7 +30,7 @@ vdev/
 | 1. Drafting | `/rfc` | RFC を起草し、feature ブランチに push、Draft PR を作成 |
 | 2. Reviewing | `/rrfc`, `/urfc` | 3 人格による並列レビュー、指摘に基づく修正 |
 | 3. Implementing | `/imp`, `/rimp`, `/uimp` | RFC に基づく実装、コードレビュー、修正 |
-| 4. Closing | - | 人間による最終確認、PR マージ |
+| 4. Closing | `/upr` | 人間の PR コメント対応、最終確認、PR マージ |
 
 ## CLI ツール
 
