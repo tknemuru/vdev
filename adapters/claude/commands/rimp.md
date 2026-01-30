@@ -12,7 +12,11 @@ $ARGUMENTS
 
 上記「対象slug」が空の場合は、「レビュー対象のslugを入力してください。」とだけ表示し、ユーザの次のメッセージを待て。
 
-### Step 2: RFC・差分の読み込み
+### Step 2: ブランチ確認
+
+現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
+
+### Step 3: RFC・差分の読み込み
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
@@ -26,11 +30,11 @@ RFC ファイルが存在しない場合はエラーを報告して終了せよ�
 
 **大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff main...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
 
-### Step 3: レビューテンプレート読み込み
+### Step 4: レビューテンプレート読み込み
 
 `~/projects/vdev/templates/review/review-default.md` を読み込め。
 
-### Step 4: 並列レビュー実行
+### Step 5: 並列レビュー実行
 
 以下の3つのレビューを **Task ツールを使って並列に** 実行せよ。各 Task は独立したサブエージェントとして起動し、親セッションのコンテキストを引き継がない。
 
@@ -91,19 +95,19 @@ RFC ファイルが存在しない場合はエラーを報告して終了せよ�
 - レビュー結果を {出力先ファイルパス} に Write ツールで書き込め。
 ```
 
-### Step 5: 結果報告
+### Step 6: 結果報告
 
 全レビュー完了後、以下をユーザに報告せよ:
 - 各レビュアーの判定（Approve / Request Changes）
 - 出力されたレビューファイルのパス一覧
 
-### Step 6: コミット & プッシュ
+### Step 7: コミット & プッシュ
 
 1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-imp-approach.md`, `review-imp-security-risk.md`, `review-imp-quality.md`）をステージングする。
 2. コミットメッセージ `docs: add implementation review results for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
 
-### Step 7: PR ステータス更新
+### Step 8: PR ステータス更新
 
 全レビュアーの判定が **Approve** の場合、以下を実行せよ:
 1. `gh pr ready` で Draft PR を Ready 状態にする。
