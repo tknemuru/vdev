@@ -16,31 +16,27 @@ $ARGUMENTS
 
 現在のブランチが `rfc/<slug>` であることを確認せよ。異なる場合は `rfc/<slug>` にチェックアウトせよ。
 
-### Step 3: RFC・レビュー結果の読み込み
+### Step 3: RFC・レビュー結果・システム概要ドキュメントの読み込み
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下を全て読み込め:
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下を**並列に（単一メッセージ内で同時に）**読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文）
 - `docs/rfcs/<slug>/review-*.md`（全レビュー結果）
+- `docs/architecture.md`（存在する場合のみ）
+- `docs/domain-model.md`（存在する場合のみ）
+- `docs/api-overview.md`（存在する場合のみ）
 
 レビューファイルが存在しない場合はエラーを報告して終了せよ。
 
-### Step 4: コードベース調査
-
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下のシステム概要ドキュメントが存在する場合は読み込め（存在しないファイルはスキップ）:
-- `docs/architecture.md`
-- `docs/domain-model.md`
-- `docs/api-overview.md`
-
 その上で、レビュー指摘に関連するコードベースを調査し、修正方針の妥当性を確認せよ。
 
-### Step 5: RFC修正
+### Step 4: RFC修正
 
 1. `~/projects/vdev/prompts/roles/rfc-author.md` を読み込み、その人格に切り替わる。
 2. 各レビューの指摘事項（P0 / P1）を分析し、RFC を修正する。
 3. P0（Blocker）は必ず対応すること。P1（Nit）は妥当であれば反映すること。
 4. 修正した内容を `docs/rfcs/<slug>/rfc.md` に書き込む。
 
-### Step 6: DoD自己チェック
+### Step 5: DoD自己チェック
 
 修正後のRFCが以下の完了定義を満たしているか自己チェックし、不足があれば補完せよ。
 
@@ -51,7 +47,7 @@ $ARGUMENTS
 - [ ] 実装・リリース計画に検証方法が含まれていること
 - [ ] システム概要ドキュメントへの影響が判断されていること
 
-### Step 7: コミット & プッシュ
+### Step 6: コミット & プッシュ
 
 1. `docs/rfcs/<slug>/rfc.md` をステージングする。
 2. コミットメッセージ `docs: revise RFC for <slug>` でコミットする。

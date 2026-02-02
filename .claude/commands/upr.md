@@ -28,12 +28,12 @@ gh pr view feature/<slug> --comments --json comments,reviews
 
 ### Step 4: RFC・コード・システム概要ドキュメントの読み込み
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
-- `docs/rfcs/<slug>/rfc.md`（RFC本文）
-- `docs/architecture.md`（存在する場合のみ）
-- `docs/domain-model.md`（存在する場合のみ）
-- `docs/api-overview.md`（存在する場合のみ）
-- 実装差分（以下のコマンドで取得。レビュー関連ファイルを除外する）
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下の操作を**並列に（単一メッセージ内で同時に）**実行せよ:
+- `docs/rfcs/<slug>/rfc.md` を読み込む（RFC本文）
+- `docs/architecture.md` を読み込む（存在する場合のみ）
+- `docs/domain-model.md` を読み込む（存在する場合のみ）
+- `docs/api-overview.md` を読み込む（存在する場合のみ）
+- 実装差分を取得する（以下のコマンド。レビュー関連ファイルを除外する）
 
 ```bash
 git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md'

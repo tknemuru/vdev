@@ -18,7 +18,7 @@ $ARGUMENTS
 
 ### Step 3: RFC・レビュー結果・システム概要ドキュメントの読み込み
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下を全て読み込め:
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下を**並列に（単一メッセージ内で同時に）**読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
 - `docs/rfcs/<slug>/review-imp-*.md`（全実装レビュー結果）
 - `docs/architecture.md`（存在する場合のみ）

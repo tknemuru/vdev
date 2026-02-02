@@ -36,7 +36,7 @@ rfc-init <slugstr>
 
 ### Step 5: コードベース調査
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下のシステム概要ドキュメントが存在する場合は読み込め（存在しないファイルはスキップ）:
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下のシステム概要ドキュメントが存在する場合は**並列に（単一メッセージ内で同時に）**読み込め（存在しないファイルはスキップ）:
 - `docs/architecture.md`
 - `docs/domain-model.md`
 - `docs/api-overview.md`
