@@ -16,38 +16,28 @@ $ARGUMENTS
 
 現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
 
-### Step 3: RFC・差分の読み込み
+### Step 3: 事前確認と差分取得
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を読み込め:
-- `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
-- 実装差分（以下のコマンドで取得。レビュー関連ファイルを除外する）
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を実行せよ:
+
+1. `docs/rfcs/<slug>/rfc.md` の存在を確認せよ。ファイルが存在しない場合はエラーを報告して終了せよ。RFC の絶対パスを控えておくこと。
+2. 実装差分を一時ファイルに保存せよ:
 
 ```bash
-git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md'
+git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-diff-<slug>.txt
 ```
-
-RFC ファイルが存在しない場合はエラーを報告して終了せよ。
 
 **大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff main...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
 
-### Step 4: レビューテンプレート読み込み
+**注意:** RFC本文やテンプレートをここで読み込む必要はない。各 Task が自身で読み込む。
 
-`~/projects/vdev/templates/review/review-default.md` を読み込め。
+### Step 4: 並列レビュー実行
 
-### Step 5: 並列レビュー実行
-
-以下の3つのレビューを **Task ツールを使って並列に** 実行せよ。各 Task は独立したサブエージェントとして起動し、親セッションのコンテキストを引き継がない。
+以下の3つのレビューを **Task ツールを使って並列に** 実行せよ。各 Task は独立したサブエージェントとして起動し、必要なファイルを自身で読み込む。
 
 **必ず3つの Task を単一メッセージ内で同時に発行すること。**
 
-各 Task のプロンプトには以下を含めること:
-- レビュー人格の定義（下記参照）
-- 検証項目（`~/projects/vdev/prompts/criterias/impl-review.md` から該当人格のセクションを抽出）
-- RFC本文の全文
-- 実装差分の全文
-- レビューテンプレート
-- 出力先ファイルパス
-- 「レビュー結果を指定のファイルパスに Write ツールで書き込め」という指示
+**Task のプロンプトに RFC 本文・差分・テンプレートを埋め込むな。ファイルパスのみ渡し、Task 側で読み込ませること。**
 
 #### Task 1: Approach Reviewer
 
@@ -67,47 +57,39 @@ RFC ファイルが存在しない場合はエラーを報告して終了せよ�
 #### 各 Task のプロンプト構成
 
 ```
-あなたは以下の人格で実装コードをレビューする。
+あなたは {人格名} として実装コードをレビューする。
+まず以下のファイルを Read ツールで読み込め。
 
-## 人格定義
-{人格ファイルの内容}
-
-## 検証項目
-{impl-review.md から該当人格のセクションを抽出した内容}
-
-## 設計仕様（RFC）
-{RFC本文の全文}
-
-## レビュー対象コード（差分）
-{git diff の全出力}
-
-## レビューテンプレート
-{レビューテンプレートの内容}
+1. 人格定義: {人格ファイルの絶対パス}
+2. 検証項目: ~/projects/vdev/prompts/criterias/impl-review.md （あなたの人格に該当するセクションのみ参照）
+3. 設計仕様（RFC）: {RFC ファイルの絶対パス}
+4. レビュー対象コード（差分）: /tmp/rimp-diff-<slug>.txt
+5. レビューテンプレート: ~/projects/vdev/templates/review/review-default.md
 
 ## 指示
-- 上記の人格定義と検証項目に従い、実装コードを厳格にレビューせよ。
+- 人格定義と検証項目に従い、実装コードを厳格にレビューせよ。
 - RFC との整合性を必ず確認すること。
 - レビューテンプレートの構造に従い、レビュー結果を作成せよ。
 - テンプレート内の {人格名} は、あなたの人格名に置き換えよ。
 - 判定は Approve または Request Changes のいずれかとせよ。
 - P0 / P1 の該当がない場合は「該当なし」と記載せよ。
 - 「である」調で記述せよ。
-- レビュー結果を {出力先ファイルパス} に Write ツールで書き込め。
+- レビュー結果を {出力先ファイルの絶対パス} に Write ツールで書き込め。
 ```
 
-### Step 6: 結果報告
+### Step 5: 結果報告
 
 全レビュー完了後、以下をユーザに報告せよ:
 - 各レビュアーの判定（Approve / Request Changes）
 - 出力されたレビューファイルのパス一覧
 
-### Step 7: コミット & プッシュ
+### Step 6: コミット & プッシュ
 
 1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-imp-approach.md`, `review-imp-security-risk.md`, `review-imp-quality.md`）をステージングする。
 2. コミットメッセージ `docs: add implementation review results for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
 
-### Step 8: PR ステータス更新
+### Step 7: PR ステータス更新
 
 全レビュアーの判定が **Approve** の場合、以下を実行せよ:
 1. `gh pr ready` で Draft PR を Ready 状態にする。
