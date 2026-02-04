@@ -14,11 +14,13 @@ $ARGUMENTS
 
 ### Step 2: ブランチ作成
 
-`feature/<slug>` ブランチが存在しない場合は `main` から作成せよ。既に存在する場合はチェックアウトせよ。
+`feature/<slug>` ブランチが存在しない場合はデフォルトブランチから作成せよ。既に存在する場合はチェックアウトせよ。
 
 ```bash
-git checkout main
-git pull --ff-only origin main 2>/dev/null || true
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+git checkout "$DEFAULT_BRANCH"
+git pull --ff-only origin "$DEFAULT_BRANCH" 2>/dev/null || true
 git checkout -b feature/<slug> 2>/dev/null || git checkout feature/<slug>
 ```
 

@@ -26,7 +26,7 @@ rfc-init <slugstr>
 
 このスクリプトは以下を自動実行する:
 - JST日付を付与した slug の生成
-- `main` から `rfc/<slug>` ブランチを作成・チェックアウト
+- デフォルトブランチから `rfc/<slug>` ブランチを作成・チェックアウト
 - `docs/rfcs/<slug>/` ディレクトリを作成
 - テンプレートを `docs/rfcs/<slug>/rfc.md` にコピー
 

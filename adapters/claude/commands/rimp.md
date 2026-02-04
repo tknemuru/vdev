@@ -21,13 +21,15 @@ $ARGUMENTS
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を実行せよ:
 
 1. `docs/rfcs/<slug>/rfc.md` の存在を確認せよ。ファイルが存在しない場合はエラーを報告して終了せよ。RFC の絶対パスを控えておくこと。
-2. 実装差分を一時ファイルに保存せよ:
+2. デフォルトブランチを取得し、実装差分を一時ファイルに保存せよ:
 
 ```bash
-git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-diff-<slug>.txt
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-diff-<slug>.txt
 ```
 
-**大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff main...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
+**大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff "$DEFAULT_BRANCH"...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
 
 **注意:** RFC本文やテンプレートをここで読み込む必要はない。各 Task が自身で読み込む。
 

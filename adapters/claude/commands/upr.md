@@ -36,7 +36,9 @@ gh pr view feature/<slug> --comments --json comments,reviews
 - 実装差分を取得する（以下のコマンド。レビュー関連ファイルを除外する）
 
 ```bash
-git diff main...HEAD -- . ':!docs/rfcs/*/review-*.md'
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md'
 ```
 
 ### Step 5: コメント分析

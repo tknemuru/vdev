@@ -3,6 +3,9 @@ set -euo pipefail
 
 VDEV_HOME="$HOME/projects/vdev"
 
+# shellcheck source=lib/git-utils.sh
+source "$VDEV_HOME/bin/lib/git-utils.sh"
+
 # --- 引数チェック ---
 if [ $# -ne 1 ]; then
   echo "Usage: rfc-init <slugstr>" >&2
@@ -51,8 +54,9 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # --- ブランチ作成 ---
-git checkout main
-git pull --ff-only origin main 2>/dev/null || true
+DEFAULT_BRANCH=$(get_default_branch)
+git checkout "$DEFAULT_BRANCH"
+git pull --ff-only origin "$DEFAULT_BRANCH" 2>/dev/null || true
 git checkout -b "rfc/${SLUG}"
 
 # --- ディレクトリ作成 & テンプレートコピー ---
