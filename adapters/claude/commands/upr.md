@@ -35,13 +35,10 @@ gh api repos/{owner}/{repo}/pulls/$PR_NUMBER/comments
 
 コメントが存在しない場合は「対応すべき PR コメントはありません。」と報告して終了せよ。
 
-### Step 4: RFC・コード・システム概要ドキュメントの読み込み
+### Step 4: RFC・コードの読み込み
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下の操作を**並列に（単一メッセージ内で同時に）**実行せよ:
 - `docs/rfcs/<slug>/rfc.md` を読み込む（RFC本文）
-- `docs/architecture.md` を読み込む（存在する場合のみ）
-- `docs/domain-model.md` を読み込む（存在する場合のみ）
-- `docs/api-overview.md` を読み込む（存在する場合のみ）
 - 実装差分を取得する（以下のコマンド。レビュー関連ファイルを除外する）
 
 ```bash

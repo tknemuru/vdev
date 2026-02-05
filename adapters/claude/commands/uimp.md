@@ -16,14 +16,11 @@ $ARGUMENTS
 
 現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
 
-### Step 3: RFC・レビュー結果・システム概要ドキュメントの読み込み
+### Step 3: RFC・レビュー結果の読み込み
 
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下を**並列に（単一メッセージ内で同時に）**読み込め:
 - `docs/rfcs/<slug>/rfc.md`（RFC本文。設計意図の参照用）
 - `docs/rfcs/<slug>/review-imp-*.md`（全実装レビュー結果）
-- `docs/architecture.md`（存在する場合のみ）
-- `docs/domain-model.md`（存在する場合のみ）
-- `docs/api-overview.md`（存在する場合のみ）
 
 レビューファイルが存在しない場合はエラーを報告して終了せよ。
 
