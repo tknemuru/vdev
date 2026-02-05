@@ -4,13 +4,15 @@
   },
   "permissions": {
     "allow": [
-      "Bash(git:*)",
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(gh:*)",
-      "Bash(ls:*)",
-      "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task"
     ]
   }
 }
