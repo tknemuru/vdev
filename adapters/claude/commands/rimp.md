@@ -1,6 +1,6 @@
 # /rimp - 実装レビューコマンド
 
-実装コードに対し、3つのレビュー人格による並列レビューを実行せよ。
+実装コードに対し、3つのレビュー人格による並列レビューとシンセサイザーによる統合を実行せよ。
 
 ## 対象slug
 
@@ -26,14 +26,21 @@ $ARGUMENTS
 ```bash
 DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
 DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
-git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-diff-<slug>.txt
+git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md' ':!docs/rfcs/*/action-plan-*.md' > /tmp/rimp-diff-<slug>.txt
 ```
 
-**大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff "$DEFAULT_BRANCH"...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
+**大規模差分への対応:** diff の出力が 3000 行を超える場合は、ファイル単位で分割してレビューを行うこと。変更ファイル一覧を `git diff "$DEFAULT_BRANCH"...HEAD --name-only -- . ':!docs/rfcs/*/review-*.md' ':!docs/rfcs/*/action-plan-*.md'` で取得し、関連ファイルをグルーピングして各 Task に分配せよ。
 
 **注意:** RFC本文やテンプレートをここで読み込む必要はない。各 Task が自身で読み込む。
 
-### Step 4: 並列レビュー実行
+### Step 4: ラウンド判定
+
+`docs/rfcs/<slug>/` 配下の `action-plan-imp-r*.md` ファイル数を確認し、ラウンド番号を自動判定する。
+
+- `action-plan-imp-r*.md` が 0件 → ラウンド1（初回フルレビュー）
+- `action-plan-imp-r*.md` が N件 → ラウンド N+1（差分レビュー・P0限定）
+
+### Step 5: 並列レビュー実行
 
 以下の3つのレビューを **Task ツールを使って並列に** 実行せよ。各 Task は独立したサブエージェントとして起動し、必要なファイルを自身で読み込む。
 
@@ -56,7 +63,7 @@ git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-d
 - 人格ファイル: `~/projects/vdev/prompts/roles/technical-quality-reviewer.md`
 - 出力先: `docs/rfcs/<slug>/review-imp-quality.md`
 
-#### 各 Task のプロンプト構成
+#### 各 Task のプロンプト構成（ラウンド1）
 
 ```
 あなたは {人格名} として実装コードをレビューする。
@@ -85,24 +92,79 @@ git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md' > /tmp/rimp-d
 - Write ツールでファイル書き込み後、テキスト出力は判定結果（Approve / Request Changes）の1行のみとせよ。
 ```
 
-### Step 5: 結果報告
+#### 各 Task のプロンプト構成（ラウンド2以降）
 
-全レビュー完了後、以下をユーザに報告せよ:
-- 各レビュアーの判定（Approve / Request Changes）
-- 出力されたレビューファイルのパス一覧
+ラウンド1のプロンプトに以下を追加する。また、差分ファイルの読み込み指示（項目4）を以下に置き換える。
 
-### Step 6: コミット & プッシュ
+```
+## 追加コンテキスト（ラウンド {N}）
+- これはレビュー第{N}ラウンドである。
+- 前回のアクションプラン: {action-plan-imp-r{N-1}.md の絶対パス}
+- 前回レビュー以降の変更差分のみをレビュー対象とせよ。
+- P0 のみ報告せよ。P1 / P2 は報告不要。
 
-1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-imp-approach.md`, `review-imp-security-risk.md`, `review-imp-quality.md`）をステージングする。
-2. コミットメッセージ `docs: add implementation review results for <slug>` でコミットする。
+## 変更差分の取得方法
+以下の git diff コマンドを Bash ツールで実行し、差分を取得せよ:
+git diff HEAD~1 -- . ':!docs/rfcs/*/review-*.md' ':!docs/rfcs/*/action-plan-*.md'
+```
+
+### Step 6: シンセサイザー実行
+
+3つのレビュー Task 完了後、以下のプロンプトでシンセサイザー Task を起動せよ。
+
+```
+あなたはシンセサイザーとして、複数のレビュー結果を統合する。
+まず以下のファイルを Read ツールで読み込め。
+
+1. シンセサイザー定義: ~/projects/vdev/prompts/roles/synthesizer.md
+2. アクションプランテンプレート: ~/projects/vdev/templates/review/action-plan-default.md
+3. レビュー結果1: docs/rfcs/<slug>/review-imp-approach.md
+4. レビュー結果2: docs/rfcs/<slug>/review-imp-security-risk.md
+5. レビュー結果3: docs/rfcs/<slug>/review-imp-quality.md
+
+## 指示
+- シンセサイザー定義の処理手順に従い、3つのレビュー結果を統合せよ。
+- アクションプランテンプレートの構造に従い、統合結果を作成せよ。
+- テンプレート内の {N} はラウンド番号 {round} に置き換えよ。
+- 「である」調で記述せよ。
+- 統合結果を docs/rfcs/<slug>/action-plan-imp-r{round}.md に Write ツールで書き込め。
+
+## 出力
+Write ツールでファイル書き込み後、以下の形式で結果を出力せよ:
+status: [Approve / Request Changes]
+p0_count: {P0件数}
+p1_count: {P1件数}
+p2_count: {P2件数}
+```
+
+**ラウンド2以降の追加指示:**
+
+```
+## 追加コンテキスト（ラウンド {N}）
+- これはラウンド {N} のシンセサイズである。
+- 2ラウンド目以降は P0 のみを処理対象とする。
+- P1/P2 セクションは「該当なし（2ラウンド目以降は P0 限定）」と記載せよ。
+```
+
+### Step 7: 結果報告
+
+シンセサイザーの結果とレビュー結果を以下の形式で報告せよ:
+- シンセサイザーの判定（Approve / Request Changes）
+- P0 / P1 / P2 の件数
+- 出力されたレビューファイルとアクションプランのパス一覧
+
+### Step 8: コミット & プッシュ
+
+1. `docs/rfcs/<slug>/` 配下のレビューファイル（`review-imp-approach.md`, `review-imp-security-risk.md`, `review-imp-quality.md`）およびアクションプラン（`action-plan-imp-r{round}.md`）をステージングする。
+2. コミットメッセージ `docs: add implementation review results (round {round}) for <slug>` でコミットする。
 3. 現在のブランチ（`feature/<slug>`）をリモートにプッシュする。
 
-### Step 7: PR ステータス更新
+### Step 9: PR ステータス更新
 
-全レビュアーの判定が **Approve** の場合、以下を実行せよ:
+シンセサイザーの判定が **Approve** の場合、以下を実行せよ:
 1. `gh pr ready` で Draft PR を Ready 状態にする。
-2. 「全レビュアーが Approve しました。PR を Ready にしました。人間による最終確認をお願いします。」とユーザに報告する。
+2. 「レビューが Approve されました。PR を Ready にしました。人間による最終確認をお願いします。」とユーザに報告する。
 
-いずれかのレビュアーが **Request Changes** の場合:
+シンセサイザーの判定が **Request Changes** の場合:
 1. PR は Draft のまま維持する。
-2. 「Request Changes があります。指摘事項を確認し、コードを修正後に再度 `/rimp` を実行してください。」とユーザに報告する。
+2. 「Request Changes があります。アクションプラン `docs/rfcs/<slug>/action-plan-imp-r{round}.md` を確認し、コードを修正後に再度 `/rimp` を実行してください。」とユーザに報告する。
