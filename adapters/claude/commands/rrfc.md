@@ -178,7 +178,8 @@ p2_count: {P2件数}
 2. ステータス変更をコミットする（メッセージ: `docs: mark RFC as accepted for <slug>`）。
 3. リモートにプッシュする。
 4. `gh pr ready` で Draft PR を Ready 状態にする。
-5. 「レビューが Approve されました。RFC を Accepted に更新し、PR を Ready にしました。人間による最終確認・マージをお願いします。」とユーザに報告する。
+5. `gh pr view --json url --jq '.url'` で PR URL を取得する。
+6. 「レビューが Approve されました。RFC を Accepted に更新し、PR を Ready にしました。人間による最終確認・マージをお願いします。\n\nPR: {PR URL}」とユーザに報告する。
 
 シンセサイザーの判定が **Request Changes** の場合:
 1. PR は Draft のまま維持する。

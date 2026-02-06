@@ -63,13 +63,14 @@ Task 完了後、Step 2-1 に戻り次のイテレーションを開始する（
 
 ### Phase 3: 完了報告
 
-以下をユーザに報告せよ:
+`gh pr view feature/{slug} --json url --jq '.url'` で PR URL を取得し、以下をユーザに報告せよ:
 
 ```
 実装レビューループが完了しました。
 
 - **Status**: Approved
 - **Branch**: feature/{slug}
+- **PR**: {PR URL}
 - **レビューラウンド数**: {iteration}
 
 PR を Ready にしました。人間による最終確認・マージをお願いします。
