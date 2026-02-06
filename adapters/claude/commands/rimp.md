@@ -188,7 +188,8 @@ p2_count: {P2件数}
 
 シンセサイザーの判定が **Approve** の場合、以下を実行せよ:
 1. `gh pr ready` で Draft PR を Ready 状態にする。
-2. 「レビューが Approve されました。PR を Ready にしました。人間による最終確認をお願いします。」とユーザに報告する。
+2. `gh pr view --json url --jq '.url'` で PR URL を取得する。
+3. 「レビューが Approve されました。PR を Ready にしました。人間による最終確認をお願いします。\n\nPR: {PR URL}」とユーザに報告する。
 
 シンセサイザーの判定が **Request Changes** の場合:
 1. PR は Draft のまま維持する。

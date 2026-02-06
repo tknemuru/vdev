@@ -66,7 +66,7 @@ Task 完了後、Step 2-1 に戻り次のイテレーションを開始する（
 
 ### Phase 3: 完了報告
 
-以下をユーザに報告せよ:
+`gh pr view rfc/{slug} --json url --jq '.url'` で PR URL を取得し、以下をユーザに報告せよ:
 
 ```
 RFC レビューループが完了しました。
@@ -74,6 +74,7 @@ RFC レビューループが完了しました。
 - **Status**: Accepted
 - **RFC**: docs/rfcs/{slug}/rfc.md
 - **Branch**: rfc/{slug}
+- **PR**: {PR URL}
 - **レビューラウンド数**: {iteration}
 
 PR を Ready にしました。人間による最終確認・マージをお願いします。
