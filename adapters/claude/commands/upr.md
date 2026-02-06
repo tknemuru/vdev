@@ -12,22 +12,30 @@ $ARGUMENTS
 
 上記「対象slug」が空の場合は、「対象のslugを入力してください。」とだけ表示し、ユーザの次のメッセージを待て。
 
-### Step 2: ブランチ確認
+### Step 2: ブランチ確認と PR タイプ判定
 
-現在のブランチが `feature/<slug>` であることを確認せよ。異なる場合は `feature/<slug>` にチェックアウトせよ。
+現在のブランチ名から PR タイプを判定せよ:
+
+1. `feature/<slug>` → **実装 PR**
+2. `rfc/<slug>` → **RFC PR**
+3. いずれでもない場合 → `feature/<slug>` と `rfc/<slug>` の両ブランチの存在をリモートで確認し、ユーザに選択させる。片方のみ存在する場合はそのブランチを使用する。
+
+該当ブランチにチェックアウトせよ。以降の手順では、ここで判定した PR タイプに応じて分岐する。
 
 ### Step 3: PR コメント取得
 
-`gh` CLI を使用して、`feature/<slug>` ブランチの PR コメントを取得せよ。
+`gh` CLI を使用して、対象ブランチの PR コメントを取得せよ。ブランチ名は Step 2 で判定した PR タイプに応じて `feature/<slug>` または `rfc/<slug>` を使用する。
 
 一般コメントとレビューコメント（インラインコメント）の両方を取得すること:
 
 ```bash
+# BRANCH は feature/<slug> または rfc/<slug>
+
 # PR 番号を取得
-PR_NUMBER=$(gh pr view feature/<slug> --json number --jq '.number')
+PR_NUMBER=$(gh pr view $BRANCH --json number --jq '.number')
 
 # 一般コメント（Conversation タブ）
-gh pr view feature/<slug> --comments --json comments
+gh pr view $BRANCH --comments --json comments
 
 # レビューコメント（インラインコメント）
 gh api repos/{owner}/{repo}/pulls/$PR_NUMBER/comments
@@ -35,9 +43,12 @@ gh api repos/{owner}/{repo}/pulls/$PR_NUMBER/comments
 
 コメントが存在しない場合は「対応すべき PR コメントはありません。」と報告して終了せよ。
 
-### Step 4: RFC・コードの読み込み
+### Step 4: 関連情報の読み込み
 
-カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、以下の操作を**並列に（単一メッセージ内で同時に）**実行せよ:
+カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に、PR タイプに応じた情報を**並列に（単一メッセージ内で同時に）**読み込め。
+
+#### 実装 PR の場合
+
 - `docs/rfcs/<slug>/rfc.md` を読み込む（RFC本文）
 - 実装差分を取得する（以下のコマンド。レビュー関連ファイルを除外する）
 
@@ -45,6 +56,17 @@ gh api repos/{owner}/{repo}/pulls/$PR_NUMBER/comments
 DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
 DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
 git diff "$DEFAULT_BRANCH"...HEAD -- . ':!docs/rfcs/*/review-*.md'
+```
+
+#### RFC PR の場合
+
+- `docs/rfcs/<slug>/rfc.md` を読み込む（RFC本文）
+- RFC 差分を取得する
+
+```bash
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+git diff "$DEFAULT_BRANCH"...HEAD -- docs/rfcs/<slug>/
 ```
 
 ### Step 5: コメントトリアージ
@@ -113,9 +135,17 @@ gh pr comment {pr_number} --body "> 元コメントの引用
 
 1. `~/projects/vdev/prompts/roles/rfc-author.md` を読み込み、RFC 修正時はその人格に従う。
 2. カテゴリ A（当初の A + カテゴリ B から昇格したもの）の指摘に対して修正を行う。
+
+#### 実装 PR の場合
+
    - RFC に対する指摘 → `docs/rfcs/<slug>/rfc.md` を修正
    - コードに対する指摘 → 該当ソースコードを修正
    - テストコードの修正・追加が必要な場合は対応する
+
+#### RFC PR の場合
+
+   - `docs/rfcs/<slug>/rfc.md` を修正する
+
 3. RFC の設計意図を維持しつつ指摘を反映すること。
 
 ### Step 8: 対応結果サマリの PR 投稿
@@ -139,11 +169,11 @@ gh pr comment {pr_number} --body "## PR Review 対応サマリ
 
 ### Step 9: テスト実行
 
-コードを修正した場合は、プロジェクトのテストコマンドを実行し全て通過することを確認せよ。
+実装 PR でコードを修正した場合は、プロジェクトのテストコマンドを実行し全て通過することを確認せよ。RFC PR の場合はこのステップをスキップする。
 
 ### Step 10: コミット & プッシュ
 
 1. 変更ファイルをステージングする。
 2. コミットメッセージは変更内容に応じた適切なプレフィックス（`fix:`, `refactor:`, `docs:` 等）を付けること。
-3. `feature/<slug>` ブランチをリモートにプッシュする。
+3. 対象ブランチ（`feature/<slug>` または `rfc/<slug>`）をリモートにプッシュする。
 4. 修正内容の要約をユーザに報告せよ。
