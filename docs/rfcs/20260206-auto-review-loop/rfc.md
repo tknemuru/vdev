@@ -10,7 +10,14 @@
 
 ## 1. 要約 (Summary)
 
-vdev の RFC駆動開発フローにおいて、AI同士のレビュー往復（`/rrfc` ↔ `/urfc`、`/rimp` ↔ `/uimp`）を自動化する新コマンド `/arfc` と `/aimp` を導入する。併せて、レビューの Severity 定義を現行の2段階（P0/P1）から3段階（P0/P1/P2）に再設計し、既存のレビューコマンド（`/rrfc`, `/rimp`）にも統一適用する。レビュー結果を統合するシンセサイザー Task を新設する。全処理フェーズを Task サブエージェントとして実行する「薄いオーケストレータ」設計を採用し、コンテキスト圧迫と人格混線の問題を構造的に解決する。`/arfc` は既存の `/rfc` を内部で呼び出す構造とし、定義の重複を回避する。
+vdev の RFC駆動開発フローにおいて、AI同士のレビュー往復（`/rrfc` ↔ `/urfc`、`/rimp` ↔ `/uimp`）を自動化する新コマンド `/arfc` と `/aimp` を導入する。併せて、以下の新思想を既存コマンドに直接組み込み、新旧コマンド間の一貫性を確保する。
+
+- Severity 定義を現行の2段階（P0/P1）から3段階（P0/P1/P2）に再設計し、全コマンドに統一適用する
+- レビュー結果を統合するシンセサイザー Task を `/rrfc` `/rimp` に組み込む
+- ラウンド自動判定と差分レビュー戦略を `/rrfc` `/rimp` に組み込む
+- `/imp` からタスク計画承認を削除する
+
+`/arfc` は `/rfc` `/rrfc` `/urfc` を、`/aimp` は `/imp` `/rimp` `/uimp` を Task 経由で内部呼び出しする構造とし、定義の重複を排除する。全処理フェーズを Task サブエージェントとして実行する「薄いオーケストレータ」設計を採用し、コンテキスト圧迫と人格混線の問題を構造的に解決する。
 
 ## 2. 背景・動機 (Motivation)
 
@@ -42,7 +49,9 @@ RFCフェーズ:  /rfc → /rrfc → /urfc → /rrfc → ... → Approve
 - Severity 定義を P0/P1/P2 の3段階に再設計し、既存コマンドを含む全コマンドに統一適用することで、P1 の収束性を構造的に確保する
 - シンセサイザー Task の導入により、レビュー結果の重複排除・矛盾解決・優先順位付けを自動化する
 - 全 Phase の Task 化により、コンテキスト圧迫と人格混線を解消する
-- `/arfc` は `/rfc` を、`/aimp` は `/imp` を内部で呼び出す構造とし、定義の重複を回避する
+- `/arfc` は `/rfc` `/rrfc` `/urfc` を、`/aimp` は `/imp` `/rimp` `/uimp` を内部で呼び出す構造とし、定義の重複を排除する
+- シンセサイザー・ラウンド判定・差分レビュー戦略を既存コマンド（`/rrfc`, `/rimp`）に直接組み込み、手動実行時にも同じ恩恵を提供する
+- `/imp` からタスク計画承認を削除し、RFC 承認を設計合意の完了とみなす
 
 ### やらないこと (Non-Goals)
 
@@ -80,48 +89,41 @@ RFCフェーズ:  /rfc → /rrfc → /urfc → /rrfc → ... → Approve
 
 #### `/arfc` のフロー
 
+`/arfc` は既存コマンドを Task 経由で内部呼び出しするだけの薄いオーケストレータである。レビュー・シンセサイズ・ラウンド判定はすべて `/rrfc` 内で完結する。
+
 ```
-Phase 1: RFC作成（既存 /rfc を呼び出し）
-  → メインエージェントが /rfc コマンドの処理を実行
+Phase 1: RFC作成
+  → Task が /rfc コマンドを読み込み実行
   ← slug, RFCパス を取得
 
 Phase 2: レビューループ（最大3イテレーション）
-  Loop-A: Task x3 (Reviewer): 並列レビュー → review-*.md
-  Loop-B: Task (Synthesizer): レビュー統合 → action-plan-r{N}.md
-  Loop-C: 判定（メイン: action-plan の判定行を確認）
-           Approve → Phase 3 へ
-           Request Changes かつ iteration < 3 → Loop-D へ
+  Step A: Task が /rrfc コマンドを読み込み実行
+          （/rrfc 内で並列レビュー → シンセサイザー → コミット&プッシュが完結）
+  Step B: 判定（メイン: /rrfc の結果を確認）
+           Approve → 完了（/rrfc 内で Accepted 更新・gh pr ready 済み）
+           Request Changes かつ iteration < 3 → Step C へ
            Request Changes かつ iteration >= 3 → ユーザに報告して終了
-  Loop-D: Task(RFC Author): action-plan に基づきRFC修正
-  → Loop-A に戻る
-
-Phase 3: 承認完了処理（メイン直接実行）
-  - RFCステータスを「Accepted」に更新
-  - コミット & プッシュ
-  - gh pr ready
+  Step C: Task が /urfc コマンドを読み込み実行（RFC修正・コミット&プッシュ）
+  → Step A に戻る
 ```
 
 #### `/aimp` のフロー
 
+`/arfc` と同構造。既存コマンドの呼び出し先が異なるのみ。
+
 ```
-Phase 1: 実装（既存 /imp を呼び出し）
-  → メインエージェントが /imp コマンドの処理を実行（タスク計画承認はスキップ）
+Phase 1: 実装
+  → Task が /imp コマンドを読み込み実行
 
 Phase 2: レビューループ（最大3イテレーション）
-  Loop-A: Task x3 (Reviewer): 並列レビュー → review-imp-*.md
-  Loop-B: Task (Synthesizer): レビュー統合 → action-plan-imp-r{N}.md
-  Loop-C: 判定（メイン: action-plan の判定行を確認）
-           Approve → Phase 3 へ
-           Request Changes かつ iteration < 3 → Loop-D へ
+  Step A: Task が /rimp コマンドを読み込み実行
+  Step B: 判定（メイン: /rimp の結果を確認）
+           Approve → 完了（/rimp 内で gh pr ready 済み）
+           Request Changes かつ iteration < 3 → Step C へ
            Request Changes かつ iteration >= 3 → ユーザに報告して終了
-  Loop-D: Task(Implementer): action-plan に基づきコード修正 + テスト実行
-  → Loop-A に戻る
-
-Phase 3: 承認完了処理（メイン直接実行）
-  - gh pr ready
+  Step C: Task が /uimp コマンドを読み込み実行（コード修正・テスト・コミット&プッシュ）
+  → Step A に戻る
 ```
-
-`/aimp` の Phase 1 では、タスク計画承認の人間チェックポイントを設けない。RFC 承認時点で設計合意は完了しており、個人開発においてタスク計画を否認する実績がないためである。実装タスクの策定から実装・テスト・PR 作成までを一気通貫で Task が実行する。
 
 ### 5.2 Severity 3段階定義
 
@@ -153,7 +155,7 @@ Phase 3: 承認完了処理（メイン直接実行）
 
 ### 5.3 シンセサイザー Task
 
-3人のレビュアーの出力を統合し、Author 向けの単一アクションプランを生成する第4の Task。
+3人のレビュアーの出力を統合し、Author 向けの単一アクションプランを生成する第4の Task。`/rrfc` および `/rimp` の標準ステップとして組み込む。手動実行（`/rrfc` 単体）でも自動ループ（`/arfc` 経由）でも同一のシンセサイズ処理が実行される。
 
 #### 入力
 
@@ -249,12 +251,25 @@ Step 1, 2 で解決できない排他的矛盾は、アクションプランに�
 
 ### 5.4 ラウンド別レビュー戦略
 
+ラウンド判定・差分レビュー戦略は `/rrfc` `/rimp` に直接組み込む。手動実行でも自動ループでも同一の戦略が適用される。
+
+#### ラウンド自動判定
+
+`/rrfc` `/rimp` は実行時に `action-plan-r{N}.md`（または `action-plan-imp-r{N}.md`）の存在を確認し、ラウンド番号を自動判定する。
+
+- `action-plan-r*.md` が0件 → ラウンド1（初回）
+- `action-plan-r*.md` が N 件 → ラウンド N+1
+
+#### ラウンド別の振る舞い
+
 | ラウンド | レビュー範囲 | 出力 Severity | 修正範囲 |
 | :--- | :--- | :--- | :--- |
 | 1 | 全文フルレビュー | P0 + P1 + P2 | P0 全件 + P1 全件（統合後最大5件） |
 | 2+ | **変更差分のみ** | **P0 のみ** | P0 全件 |
 
 #### 2ラウンド目以降のレビュー Task プロンプト追加指示
+
+`/rrfc` `/rimp` がラウンド2以降と判定した場合、レビュー Task のプロンプトに以下を追加する。
 
 ```markdown
 ## 追加コンテキスト（2ラウンド目以降）
@@ -340,13 +355,14 @@ docs: add review results (round 2) for <slug>
 | :--- | :--- |
 | `prompts/criterias/rfc-review.md` | P1 判定基準の追記、P2 定義の追加 |
 | `prompts/criterias/impl-review.md` | 同上 |
-| `adapters/claude/commands/rrfc.md` | Severity 定義を P0/P1/P2 に更新、レビューテンプレート参照先の変更 |
+| `adapters/claude/commands/rrfc.md` | Severity を P0/P1/P2 に更新、シンセサイザー実行ステップの追加、ラウンド自動判定の追加、2ラウンド目以降の差分レビュー・P0限定戦略の追加 |
 | `adapters/claude/commands/rimp.md` | 同上 |
+| `adapters/claude/commands/imp.md` | タスク計画承認（Step 4）の削除 |
 | `adapters/claude/commands/urfc.md` | P2 対応不要の方針を明記 |
 | `adapters/claude/commands/uimp.md` | 同上 |
 | `templates/review/review-default.md` | P2 セクションの追加 |
 
-Severity 3段階定義は全コマンドに統一適用する。既存コマンドと新コマンドで異なる Severity 体系が併存する状態を避け、保守性を確保する。
+新思想（Severity 3段階、シンセサイザー、ラウンド判定、差分レビュー戦略）は既存コマンドに直接組み込む。`/arfc` `/aimp` はこれらを呼び出すだけの薄いオーケストレータとし、定義の重複を排除する。
 
 ## 6. 代替案の検討 (Alternatives Considered)
 
@@ -362,15 +378,15 @@ Severity 3段階定義は全コマンドに統一適用する。既存コマン�
 - **長所**: コマンド定義に手を入れずに実現可能。
 - **短所**: Claude Code のスラッシュコマンドはシェルから呼び出せない（AI プロンプトとして実行される仕組み）。技術的に実現不可能。
 
-### 案C: 新規複合コマンド + シンセサイザー + Severity 統一再設計（採用案）
+### 案C: 新規複合コマンド + 既存コマンドへの新思想組み込み + Severity 統一再設計（採用案）
 
-- **概要**: `/arfc`, `/aimp` を新設。薄いオーケストレータ + 全 Phase Task 化 + シンセサイザー + P0/P1/P2 の3段階 Severity を全コマンドに統一適用。`/arfc` は `/rfc` を、`/aimp` は `/imp` を内部で呼び出す構造とし、定義の重複を回避。
-- **長所**: Severity 定義が一元化され保守性向上。コンテキスト分離が構造的に保証される。P1 収束問題を Severity 再設計とシンセサイザーで根本解決。既存ロジックを再利用することで新コマンドの定義が簡潔になる。
-- **短所**: 既存コマンドの変更が必要（リグレッションリスク）。シンセサイザーという新しい概念の導入。
+- **概要**: `/arfc`, `/aimp` を新設。新思想（シンセサイザー、ラウンド判定、差分レビュー戦略、Severity 3段階）をすべて既存コマンド（`/rrfc`, `/rimp`, `/imp` 等）に直接組み込む。`/arfc` は `/rfc` `/rrfc` `/urfc` を、`/aimp` は `/imp` `/rimp` `/uimp` を Task 経由で内部呼び出しする構造とし、定義の重複を排除する。
+- **長所**: Severity 定義が一元化され保守性向上。コンテキスト分離が構造的に保証される。P1 収束問題を Severity 再設計とシンセサイザーで根本解決。手動実行時にもシンセサイザーや差分レビュー戦略の恩恵を受けられる。`/arfc` `/aimp` はオーバーライドなしで既存コマンドを呼ぶだけの構造となり、定義の一元管理が実現する。
+- **短所**: 既存コマンドの変更範囲が大きい（リグレッションリスク）。シンセサイザーという新しい概念の導入。
 
 ### 選定理由
 
-案C を採用する。案A は既存コマンドの複雑化リスクがあり、案B は技術的に不可能である。案C は Severity 定義の二重管理を避け、既存コマンドと新コマンドで一貫した体験を提供できる。既存コマンドの変更によるリグレッションリスクはあるが、変更範囲が Severity 定義の更新に限定されるため、影響は軽微である。`/arfc` が `/rfc` を呼び出す構造により、RFC 作成ロジックの一元管理も実現する。
+案C を採用する。案A は既存コマンドの複雑化リスクがあり、案B は技術的に不可能である。案C は新思想を既存コマンドに組み込むことで、手動実行と自動ループの両方で一貫した体験を提供できる。既存コマンドの変更範囲は大きいが、新旧で異なる体系が併存するリスクを排除でき、長期的な保守性が向上する。
 
 ## 7. 横断的関心事 (Cross-Cutting Concerns)
 
@@ -390,13 +406,18 @@ Severity 3段階定義は全コマンドに統一適用する。既存コマン�
 
 ### 7.4 マイグレーションと後方互換性
 
-- 既存コマンド（`/rrfc`, `/rimp`, `/urfc`, `/uimp`）の Severity 定義を P0/P1/P2 に変更する
+- 既存コマンドへの変更:
+  - `/rrfc` `/rimp`: Severity を P0/P1/P2 に変更、シンセサイザー・ラウンド判定・差分レビュー戦略を追加
+  - `/imp`: タスク計画承認を削除
+  - `/urfc` `/uimp`: P2 対応不要の方針を明記
 - 既存コマンドの利用者への影響:
   - レビュー出力に P2 カテゴリが追加される（新規追加、情報量増加）
   - P1 の定義が厳格化される（「具体的改善提案」に限定）
   - 従来 P1 だった一部の指摘が P2 に分類される（対応負荷軽減）
+  - `/rrfc` `/rimp` にシンセサイザーが追加される（レビュー結果の自動統合）
+  - `/rrfc` `/rimp` の2回目以降の実行が差分レビュー・P0限定になる（効率向上）
+  - `/imp` のタスク計画承認が不要になる（ステップ削減）
 - 既存コマンドを使い続けることも可能（`/arfc` と `/rfc` + `/rrfc` + `/urfc` は共存する）
-- 破壊的変更はなく、出力フォーマットの拡張のみ
 
 ## 8. テスト戦略 (Test Strategy)
 
@@ -416,24 +437,25 @@ vdev はプロンプト定義とシェルスクリプトで構成されるため
 
 ## 9. 実装・リリース計画 (Implementation Plan)
 
-### フェーズ1: 基盤整備と既存コマンド更新
+### フェーズ1: 基盤整備
 
 1. Severity 3段階定義の追加（`prompts/criterias/rfc-review.md`, `impl-review.md`）
 2. レビューテンプレートの更新（`templates/review/review-default.md` に P2 追加）
-3. 既存レビューコマンドの更新（`rrfc.md`, `rimp.md` の Severity 定義を P0/P1/P2 に変更）
-4. 既存修正コマンドの更新（`urfc.md`, `uimp.md` に P2 対応不要の方針を明記）
-5. シンセサイザー人格定義の作成（`prompts/roles/synthesizer.md`）
-6. アクションプランテンプレートの作成（`templates/review/action-plan-default.md`）
+3. シンセサイザー人格定義の作成（`prompts/roles/synthesizer.md`）
+4. アクションプランテンプレートの作成（`templates/review/action-plan-default.md`）
 
-### フェーズ2: /arfc コマンド実装
+### フェーズ2: 既存コマンドへの新思想組み込み
 
-1. `adapters/claude/commands/arfc.md` の作成（`/rfc` を内部で呼び出す構造）
-2. 実プロジェクトでの動作検証
+1. `/rrfc` の更新: シンセサイザー実行ステップの追加、ラウンド自動判定の追加、2ラウンド目以降の差分レビュー・P0限定戦略の追加
+2. `/rimp` の更新: `/rrfc` と同様の変更
+3. `/imp` の更新: タスク計画承認の削除
+4. `/urfc` `/uimp` の更新: P2 対応不要の方針を明記
 
-### フェーズ3: /aimp コマンド実装
+### フェーズ3: /arfc, /aimp コマンド実装
 
-1. `adapters/claude/commands/aimp.md` の作成（`/imp` を内部で呼び出す構造）
-2. 実プロジェクトでの動作検証
+1. `adapters/claude/commands/arfc.md` の作成（`/rfc` `/rrfc` `/urfc` を内部呼び出し）
+2. `adapters/claude/commands/aimp.md` の作成（`/imp` `/rimp` `/uimp` を内部呼び出し）
+3. 実プロジェクトでの動作検証
 
 ### システム概要ドキュメントへの影響
 
