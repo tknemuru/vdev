@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (RFC Author) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-06 |
 | **タグ** | workflow, commands, review |
 | **関連リンク** | [vdevフロー改善調査レポート](../../reports/20260204-vdev-flow-analysis.md) |
