@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (Claude) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-10 |
 | **タグ** | workflow, rfc-template |
 | **関連リンク** | `templates/rfc/rfc-default.md`, `adapters/claude/commands/imp.md` |
