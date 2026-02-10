@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (Claude) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-10 |
 | **タグ** | workflow, information-architecture |
 | **関連リンク** | `docs/reports/20260210-report-vdev-flow-information-architecture.md` |
