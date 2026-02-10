@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (Claude) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-10 |
 | **タグ** | workflow, command |
 | **関連リンク** | `adapters/claude/commands/fix.md`, `workflow/rfc-driven.md` |
