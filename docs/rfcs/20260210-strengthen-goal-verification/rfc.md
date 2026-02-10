@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (Claude) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-10 |
 | **タグ** | workflow, quality-assurance |
 | **関連リンク** | RFC `20260209-enforce-rfc-goal-verification`, [dre#56](https://github.com/tknemuru/dre/pull/56), `docs/reports/20260210-report-goal-verification-enforcement-analysis.md` |
