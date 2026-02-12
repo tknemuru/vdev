@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | Claude (RFC Author) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-12 |
 | **タグ** | templates, workflow, process |
 | **関連リンク** | RFC `20260210-rfc-template-format-reform`, RFC `20260210-remove-phase-from-impl-plan`, RFC `20260210-strengthen-goal-verification`, `~/projects/dre-2/docs/rfcs/20260212-explore-email-delivery-rebuild/rfc.md` |
