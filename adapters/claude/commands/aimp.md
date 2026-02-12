@@ -79,19 +79,7 @@ Task の結果からシンセサイザーの判定を確認する。
 $ARGUMENTS の値は「{slug}」として扱え。
 ```
 
-#### Step 2-4: 再検証（/vfy 呼び出し）
-
-コード修正後、以下のプロンプトで Task を起動し、Verification を再実行させよ。
-
-```
-以下のコマンド定義を読み込み、その手順に従って Verification を実行せよ。
-- コマンド定義: ~/projects/vdev/adapters/claude/commands/vfy.md
-
-$ARGUMENTS の値は「{slug}」として扱え。
-```
-
-- **全 PASS の場合**: Step 2-1 に戻り次のイテレーションを開始する（iteration をインクリメント）。
-- **FAIL がある場合**: FAIL 項目をユーザに報告して終了する。
+Task 完了後、Step 2-1 に戻り次のイテレーションを開始する（iteration をインクリメント）。
 
 ### Phase 3: 完了報告
 
