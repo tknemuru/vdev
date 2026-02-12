@@ -21,7 +21,10 @@ $ARGUMENTS
 カレントリポジトリのルート（`git rev-parse --show-toplevel`）を基準に以下を実行せよ:
 
 1. `docs/rfcs/<slug>/rfc.md` の存在を確認せよ。ファイルが存在しない場合はエラーを報告して終了せよ。RFC の絶対パスを控えておくこと。
-2. デフォルトブランチを取得し、実装差分を一時ファイルに保存せよ:
+2. `docs/rfcs/<slug>/verification-results.md` の存在を確認せよ。
+   - ファイルが存在しない場合: 「`/vfy <slug>` を先に実行してください。」と表示してエラー終了する。
+   - ファイルが存在するが FAIL 項目がある場合: 「全 Verification が PASS になるまで `/vfy <slug>` を再実行してください。」と表示してエラー終了する。
+3. デフォルトブランチを取得し、実装差分を一時ファイルに保存せよ:
 
 ```bash
 DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
