@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | Claude (RFC Author) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-13 |
 | **タグ** | templates, workflow, process |
 | **関連リンク** | RFC `20260212-rfc-template-reform-v2` |
