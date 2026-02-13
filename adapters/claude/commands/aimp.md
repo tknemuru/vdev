@@ -1,6 +1,6 @@
 # /aimp - 自動実装コマンド
 
-承認済みRFCに基づく実装からレビュー承認までを自動で実行する。メインエージェントは薄いオーケストレータとして振る舞い、各フェーズは既存コマンド（`/imp`, `/rimp`, `/uimp`）を Task 経由で内部呼び出しする。
+承認済みRFCに基づく実装からレビュー承認までを自動で実行する。メインエージェントは薄いオーケストレータとして振る舞い、各フェーズは既存コマンド（`/imp`, `/vfy`, `/rimp`, `/uimp`）を Task 経由で内部呼び出しする。
 
 ## 対象slug
 
@@ -24,6 +24,26 @@ $ARGUMENTS
 
 $ARGUMENTS の値は「{slug}」として扱え。
 ```
+
+### Phase 1.5: Verification
+
+#### Step 1.5-1: Verification 実行（/vfy 呼び出し）
+
+以下のプロンプトで Task を起動し、Verification を実行させよ。
+
+```
+以下のコマンド定義を読み込み、その手順に従って Verification を実行せよ。
+- コマンド定義: ~/projects/vdev/adapters/claude/commands/vfy.md
+
+$ARGUMENTS の値は「{slug}」として扱え。
+```
+
+#### Step 1.5-2: 判定
+
+Task の結果から Verification の判定を確認する。
+
+- **全 PASS の場合**: Phase 2 へ進む。
+- **FAIL がある場合**: FAIL 項目をユーザに報告して終了する。
 
 ### Phase 2: レビューループ
 
