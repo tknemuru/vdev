@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | AI (Claude) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-27 |
 | **タグ** | testing, workflow, quality |
 | **関連リンク** | docs/reports/20260227-report-service-spec-template-analysis.md |
