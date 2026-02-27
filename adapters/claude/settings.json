@@ -14,7 +14,7 @@
       "WebFetch",
       "WebSearch",
       "Task",
-      "Skill(keybindings-help)"
+      "Skill"
     ]
   }
 }
