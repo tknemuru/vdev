@@ -23,7 +23,7 @@ echo ""
 
 # .claude ディレクトリ配下にコピー（CLAUDE.md を除く）
 mkdir -p "$DEST_CLAUDE_DIR"
-rsync -av --exclude='CLAUDE.md' "$SOURCE_DIR/" "$DEST_CLAUDE_DIR/"
+rsync -av --exclude='CLAUDE.md' --exclude='settings.local.json' "$SOURCE_DIR/" "$DEST_CLAUDE_DIR/"
 
 # CLAUDE.md はリポジトリルート直下にコピー
 cp "$SOURCE_DIR/CLAUDE.md" "$REPO_ROOT/CLAUDE.md"

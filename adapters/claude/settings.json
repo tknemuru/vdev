@@ -13,7 +13,8 @@
       "Grep",
       "WebFetch",
       "WebSearch",
-      "Task"
+      "Task",
+      "Skill(keybindings-help)"
     ]
   }
 }
