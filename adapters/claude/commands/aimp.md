@@ -25,7 +25,9 @@ $ARGUMENTS
 $ARGUMENTS の値は「{slug}」として扱え。
 ```
 
-### Phase 1.5: Verification
+### Phase 1.5: Verification ループ
+
+verification_attempts カウンターを 0 で初期化する。
 
 #### Step 1.5-1: Verification 実行（/vfy 呼び出し）
 
@@ -43,7 +45,26 @@ $ARGUMENTS の値は「{slug}」として扱え。
 Task の結果から Verification の判定を確認する。
 
 - **全 PASS の場合**: Phase 2 へ進む。
-- **FAIL がある場合**: FAIL 項目をユーザに報告して終了する。
+- **FAIL あり かつ verification_attempts < 3 の場合**: Step 1.5-3 へ進む。
+- **FAIL あり かつ verification_attempts >= 3 の場合**:
+  FAIL 項目をユーザに報告して終了する。
+
+#### Step 1.5-3: Verification FAIL 修正（Task経由）
+
+verification_attempts をインクリメントする。
+
+以下のプロンプトで Task を起動し、FAIL 項目を修正させよ。
+
+```
+docs/rfcs/{slug}/verification-results.md と
+docs/rfcs/{slug}/rfc.md を Read ツールで読み込め。
+Verification 結果から FAIL 項目を特定し、RFC の設計意図と
+E2Eテスト仕様を参照しながら、FAIL の原因をコードレベルで
+診断し修正せよ。修正後、プロジェクトのテストコマンドを
+実行して通過を確認し、変更をコミット・プッシュせよ。
+```
+
+Task 完了後、Step 1.5-1 に戻る。
 
 ### Phase 2: レビューループ
 
