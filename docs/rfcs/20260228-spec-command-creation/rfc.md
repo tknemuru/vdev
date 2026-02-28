@@ -225,10 +225,28 @@ $ARGUMENTS
 
 十分に明確な場合はこのステップをスキップしてよい。
 
-#### Step 1-3: テンプレートのコピー
+#### Step 1-3: ブランチ作成
 
 対象リポジトリのルート（git rev-parse --show-toplevel）を
 基準に、以下を実行する:
+
+1. デフォルトブランチ（master または main）を最新化する
+
+```bash
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | tr -d ' ')
+git checkout "$DEFAULT_BRANCH"
+git pull origin "$DEFAULT_BRANCH"
+```
+
+2. プロダクト情報からブランチ名用の slug を生成する
+   - 最大30文字の全小文字ケバブケース英数字（a-z, 0-9, ハイフンのみ）
+3. `docs/spec-<slug>` ブランチを作成・チェックアウトする
+
+```bash
+git checkout -b "docs/spec-<slug>"
+```
+
+#### Step 1-4: テンプレートのコピー
 
 1. docs/ ディレクトリが存在しない場合は作成する
 2. ~/projects/vdev/templates/service-spec/service-spec.md を
@@ -409,13 +427,46 @@ E2Eテスト品質:
 修正回数: {N}回
 最終結果: 全項目 PASS
 
-### Phase 7: コミット & プッシュ
+### Phase 7: コミット & PR 作成
 
 1. 変更ファイルをステージングする
 2. コミットメッセージ:
-   docs: add service spec for {プロダクト名}
+   `docs: add service spec for {プロダクト名}`
 3. リモートにプッシュする
-4. ファイルパスをユーザに報告する
+
+```bash
+git push -u origin docs/spec-<slug>
+```
+
+4. PR を作成する
+
+```bash
+gh pr create --title "docs: add service spec for {プロダクト名}" --body "$(cat <<'EOF'
+## Summary
+- サービス仕様書を新規作成
+- E2Eテスト要件は Three-Tier Method で体系的に導出済み
+- チェックリスト検証で品質確認済み
+
+## Checklist
+- [ ] §1 サービス概要の妥当性
+- [ ] §2 E2Eテスト要件の網羅性
+- [ ] §4.3 RFC分割粒度の妥当性
+- [ ] §6 ドメイン設計の業務ルール正確性
+EOF
+)"
+```
+
+5. 以下をユーザに報告する:
+
+```
+サービス仕様書の作成が完了しました。
+
+- **ファイル**: docs/service-spec.md
+- **ブランチ**: docs/spec-<slug>
+- **PR**: {PR URL}
+
+人間による最終確認・マージをお願いします。
+```
 ```
 
 ### 設計2: コマンド定義の設計判断
