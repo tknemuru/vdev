@@ -57,7 +57,7 @@ fi
 DEFAULT_BRANCH=$(get_default_branch)
 git checkout "$DEFAULT_BRANCH"
 git pull --ff-only origin "$DEFAULT_BRANCH" 2>/dev/null || true
-git checkout -b "rfc/${SLUG}"
+git checkout -b "rfc/${SLUG}" 2>/dev/null || git checkout "rfc/${SLUG}"
 
 # --- ディレクトリ作成 & テンプレートコピー ---
 mkdir -p "$TARGET_DIR"
