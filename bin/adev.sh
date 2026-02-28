@@ -34,19 +34,20 @@ if [ ! -f "$SPEC_PATH" ]; then
 fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-SPEC_CONTENT="$(cat "$SPEC_PATH")"
 
 # --- Phase 1: 前提条件ゲート ---
 echo "=== Phase 1: 前提条件検証 ==="
 
-GATE_RESULT=$(claude -p \
-  --allowedTools "Bash(git:*) Read Glob Grep" \
-  "以下の仕様書の §4.1（必要な環境情報）と §4.2（事前の人間タスク）を検証せよ。
+GATE_RESULT=$({
+  cat <<'PROMPT_EOF'
+以下の仕様書の §4.1（必要な環境情報）と §4.2（事前の人間タスク）を検証せよ。
 全項目が充足されていれば OK とだけ出力せよ。
 1件でも未充足があれば、未充足項目を一覧表示し最後に FAIL と出力せよ。
 
 仕様書:
-$SPEC_CONTENT")
+PROMPT_EOF
+  cat "$SPEC_PATH"
+} | claude -p --allowedTools "Bash(git:*) Read Glob Grep")
 
 echo "$GATE_RESULT"
 
@@ -58,15 +59,17 @@ fi
 # --- Phase 2: RFC slug 一覧の抽出 ---
 echo "=== Phase 2: RFC slug 一覧抽出 ==="
 
-SLUGS_JSON=$(claude -p \
-  --allowedTools "Read" \
-  "以下の仕様書のセクション ${SECTION} から
+SLUGS_JSON=$({
+  cat <<PROMPT_EOF
+以下の仕様書のセクション ${SECTION} から
 RFC 一覧テーブルをパースし、slug のリストを JSON 配列で出力せよ。
 出力は JSON 配列のみとし、他のテキストは一切含めるな。
-例: [\"slug-1\", \"slug-2\"]
+例: ["slug-1", "slug-2"]
 
 仕様書:
-$SPEC_CONTENT")
+PROMPT_EOF
+  cat "$SPEC_PATH"
+} | claude -p --allowedTools "Read")
 
 echo "抽出された slug 一覧: $SLUGS_JSON"
 
@@ -106,15 +109,20 @@ LOGEOF
   echo "[${slug}] 自動 RFC 実行中..."
   TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
-  if claude -p \
-    --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch" \
-    "以下のコマンド定義を読み込み、その手順に従ってRFCの作成・レビューを自動実行せよ。
+  if {
+    cat <<PROMPT_EOF
+以下のコマンド定義を読み込み、その手順に従ってRFCの作成・レビューを自動実行せよ。
 - コマンド定義: ~/projects/vdev/adapters/claude/commands/arfc.md
 
 \$ARGUMENTS の値は以下の元ネタ文章として扱え:
-${SPEC_CONTENT}
+PROMPT_EOF
+    cat "$SPEC_PATH"
+    cat <<PROMPT_EOF
 
-対象 RFC の slug: ${slug}"; then
+対象 RFC の slug: ${slug}
+PROMPT_EOF
+  } | claude -p \
+    --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch"; then
     echo "| ${TIMESTAMP} | RFC作成 | /arfc 実行 | 成功 | - |" \
       >> "$DECISION_LOG"
   else
