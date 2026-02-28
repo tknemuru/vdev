@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | Claude (AI) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-28 |
 | **タグ** | command, service-spec, quality, e2e-test |
 | **関連リンク** | サービス仕様書テンプレートRFC: 20260228-service-spec-template |
