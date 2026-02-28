@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | Claude (AI) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-02-28 |
 | **タグ** | automation, OOM, reliability |
 | **関連リンク** | OOM分析レポート: gale-v0/docs/reports/20260227-report-adev-oom-analysis.md |
