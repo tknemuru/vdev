@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 | :--- | :--- |
 | **作成者 (Author)** | Claude (RFC Author) |
-| **ステータス** | Draft (起草中) |
+| **ステータス** | Accepted (承認済) |
 | **作成日** | 2026-03-01 |
 | **タグ** | automation, fault-tolerance, idempotency |
 | **関連リンク** | 先行修正: commit 7870519（自動RFC呼び出しのstdinパイプ化） |
