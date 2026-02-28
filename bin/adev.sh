@@ -91,6 +91,16 @@ for slug in "${SLUGS[@]}"; do
   echo ""
   echo "--- [$((COMPLETED + 1))/${TOTAL}] slug: ${slug} ---"
 
+  # --- 冪等性: 完了済みスキップ ---
+  FEATURE_STATUS=$(get_pr_status "feature/${slug}")
+  if [ "$FEATURE_STATUS" = "MERGED" ]; then
+    echo "[${slug}] 実装PR マージ済み。スキップします。"
+    COMPLETED=$((COMPLETED + 1))
+    continue
+  fi
+
+  RFC_STATUS=$(get_pr_status "rfc/${slug}")
+
   DECISION_LOG="$REPO_ROOT/docs/rfcs/${slug}/adev-decisions.md"
   TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
@@ -105,64 +115,71 @@ for slug in "${SLUGS[@]}"; do
 LOGEOF
   fi
 
-  # --- Step 3-1: 自動 RFC ---
-  echo "[${slug}] 自動 RFC 実行中..."
-  TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
+  if [ "$RFC_STATUS" = "MERGED" ]; then
+    echo "[${slug}] RFC PR マージ済み。実装工程から再開します。"
+  else
+    # --- Step 3-1: 自動 RFC ---
+    echo "[${slug}] 自動 RFC 実行中..."
+    TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
-  if {
-    cat <<PROMPT_EOF
+    if {
+      cat <<PROMPT_EOF
 以下のコマンド定義を読み込み、その手順に従ってRFCの作成・レビューを自動実行せよ。
 - コマンド定義: ~/projects/vdev/adapters/claude/commands/arfc.md
 
 \$ARGUMENTS の値は以下の元ネタ文章として扱え:
 PROMPT_EOF
-    cat "$SPEC_PATH"
-    cat <<PROMPT_EOF
+      cat "$SPEC_PATH"
+      cat <<PROMPT_EOF
 
 対象 RFC の slug: ${slug}
 PROMPT_EOF
-  } | claude -p \
-    --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch"; then
-    echo "| ${TIMESTAMP} | RFC作成 | /arfc 実行 | 成功 | - |" \
-      >> "$DECISION_LOG"
-  else
-    echo "| ${TIMESTAMP} | RFC作成 | /arfc 実行 | 失敗 | - |" \
-      >> "$DECISION_LOG"
-    echo "エラー: [${slug}] 自動 RFC が失敗しました。停止します。" >&2
-    exit 1
-  fi
+    } | run_claude_with_recovery \
+      --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch"; then
+      echo "| ${TIMESTAMP} | RFC作成 | /arfc 実行 | 成功 | - |" \
+        >> "$DECISION_LOG"
+    else
+      echo "| ${TIMESTAMP} | RFC作成 | /arfc 実行 | 失敗 | - |" \
+        >> "$DECISION_LOG"
+      echo "エラー: [${slug}] 自動 RFC が失敗しました。停止します。" >&2
+      exit 1
+    fi
 
-  # --- Step 3-2: RFC PR マージ ---
-  echo "[${slug}] RFC PR マージ中..."
-  TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
+    # --- Step 3-2: RFC PR マージ ---
+    echo "[${slug}] RFC PR マージ中..."
+    TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
-  DEFAULT_BRANCH=$(get_default_branch)
-  git checkout "rfc/${slug}" 2>/dev/null || true
+    DEFAULT_BRANCH=$(get_default_branch)
+    git checkout "rfc/${slug}" 2>/dev/null || true
 
-  if gh pr merge --squash --delete-branch; then
-    echo "| ${TIMESTAMP} | RFCマージ | gh pr merge | 成功 | - |" \
-      >> "$DECISION_LOG"
-    git checkout "$DEFAULT_BRANCH"
-    git pull --ff-only origin "$DEFAULT_BRANCH" 2>/dev/null || true
-  else
-    echo "| ${TIMESTAMP} | RFCマージ | gh pr merge | 失敗 | - |" \
-      >> "$DECISION_LOG"
-    echo "エラー: [${slug}] RFC PR マージが失敗しました。停止します。" >&2
-    exit 1
+    if gh pr merge --squash --delete-branch; then
+      echo "| ${TIMESTAMP} | RFCマージ | gh pr merge | 成功 | - |" \
+        >> "$DECISION_LOG"
+      git checkout "$DEFAULT_BRANCH"
+      git pull --ff-only origin "$DEFAULT_BRANCH" 2>/dev/null || true
+    else
+      echo "| ${TIMESTAMP} | RFCマージ | gh pr merge | 失敗 | - |" \
+        >> "$DECISION_LOG"
+      echo "エラー: [${slug}] RFC PR マージが失敗しました。停止します。" >&2
+      exit 1
+    fi
   fi
 
   # --- Step 3-3: 自動実装 ---
   echo "[${slug}] 自動実装実行中..."
   TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
-  if claude -p \
-    --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch" \
-    "以下のコマンド定義を読み込み、その手順に従って実装を自動実行せよ。
+  if {
+    cat <<PROMPT_EOF
+以下のコマンド定義を読み込み、その手順に従って実装を自動実行せよ。
 - コマンド定義: ~/projects/vdev/adapters/claude/commands/aimp.md
 
 \$ARGUMENTS の値は「${slug}」として扱え。
 
-注意: /vfy の副作用を伴う操作はユーザ承認済みとして扱え。"; then
+注意: /vfy の副作用を伴う操作はユーザ承認済みとして扱え。
+PROMPT_EOF
+  } | run_claude_with_recovery \
+    --allowedTools "Bash Edit Read Write Glob Grep WebFetch WebSearch"; then
     echo "| ${TIMESTAMP} | 実装 | /aimp 実行 | 成功 | - |" \
       >> "$DECISION_LOG"
   else
@@ -176,6 +193,7 @@ PROMPT_EOF
   echo "[${slug}] 実装 PR マージ中..."
   TIMESTAMP=$(TZ=Asia/Tokyo date +%Y-%m-%dT%H:%M%z)
 
+  DEFAULT_BRANCH=$(get_default_branch)
   git checkout "feature/${slug}" 2>/dev/null || true
 
   if gh pr merge --squash --delete-branch; then
